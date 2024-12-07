@@ -5,7 +5,12 @@ import pandas as pd
 import scipy.stats as stats
 
 # Đọc dữ liệu
-df = pd.read_csv('weather_data_cleaned.csv')  # Đảm bảo đường dẫn đúng đến file dữ liệu của bạn
+df1 = pd.read_csv('weather_data_cleaned_1.csv')
+df2 = pd.read_csv('weather_data_cleaned_2.csv')
+df3 = pd.read_csv('weather_data_cleaned_3.csv')
+
+# Gộp các DataFrame lại với nhau
+df = pd.concat([df1, df2, df3], ignore_index=True)  # Đảm bảo đường dẫn đúng đến file dữ liệu của bạn
 
 # Lấy danh sách tất cả các cột từ DataFrame
 all_columns = df.columns.tolist()
