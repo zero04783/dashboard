@@ -77,7 +77,7 @@ def get_summary_statistics(var1, var2):
 
 # Khởi tạo Dash app
 app = dash.Dash(__name__)
-
+server = app.server
 # Tạo layout cho Dashboard
 app.layout = html.Div([
     html.H1("Interactive Data Dashboard", style={'textAlign': 'center'}),
