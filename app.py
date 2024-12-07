@@ -5,13 +5,13 @@ import pandas as pd
 import scipy.stats as stats
 
 # Đọc dữ liệu
+# df = pd.read_csv('weather_data_cleaned.csv')  # Đảm bảo đường dẫn đúng đến file dữ liệu của bạn
 df1 = pd.read_csv('weather_data_cleaned_1.csv')
 df2 = pd.read_csv('weather_data_cleaned_2.csv')
 df3 = pd.read_csv('weather_data_cleaned_3.csv')
 
 # Gộp các DataFrame lại với nhau
-df = pd.concat([df1, df2, df3], ignore_index=True)  # Đảm bảo đường dẫn đúng đến file dữ liệu của bạn
-
+df = pd.concat([df1, df2, df3], ignore_index=True)
 # Lấy danh sách tất cả các cột từ DataFrame
 all_columns = df.columns.tolist()
 
@@ -78,6 +78,7 @@ def get_summary_statistics(var1, var2):
 # Khởi tạo Dash app
 app = dash.Dash(__name__)
 server = app.server
+
 # Tạo layout cho Dashboard
 app.layout = html.Div([
     html.H1("Interactive Data Dashboard", style={'textAlign': 'center'}),
@@ -127,9 +128,33 @@ app.layout = html.Div([
      Input('var2-dropdown', 'value')]
 )
 def update_dashboard(var1, var2):
-    relationship_fig = px.scatter(df, x=var1, y=var2, title=f"Relationship between {var1} and {var2}")
+    # Kiểm tra biến phản hồi là phân loại hay định lượng
+    if df[var1].dtype == 'object':  # Biến phản hồi var1 là phân loại
+        # Kiểm tra số lượng loại trong var1
+        unique_values = df[var1].nunique()
+        if unique_values > 2:
+            # Chuyển var1 thành 2 loại (nhóm lại thành 2 loại)
+            top_2 = df[var1].value_counts().nlargest(2).index
+            df[var1] = df[var1].apply(lambda x: x if x in top_2 else 'Other')
+        # Vẽ biểu đồ cột nếu var2 là định lượng
+        if df[var2].dtype in ['float64', 'int64']:
+            relationship_fig = px.bar(df, x=var1, y=var2, title=f"Bar Chart between {var1} and {var2}")
+        else:
+            relationship_fig = px.bar(df, x=var1, title=f"Bar Chart of {var1}")
+    elif df[var2].dtype == 'object':  # Biến giải thích var2 là phân loại
+        # Chuyển biến phản hồi var1 thành phân loại và vẽ biểu đồ cột
+        if df[var1].dtype in ['float64', 'int64']:
+            relationship_fig = px.bar(df, x=var2, y=var1, title=f"Bar Chart between {var2} and {var1}")
+        else:
+            relationship_fig = px.bar(df, x=var2, title=f"Bar Chart of {var2}")
+    else:  # Cả 2 biến là định lượng, vẽ biểu đồ phân tán
+        relationship_fig = px.scatter(df, x=var1, y=var2, title=f"Scatter Plot between {var1} and {var2}")
+
+    # Vẽ histogram cho từng biến
     dist_fig_var1 = px.histogram(df, x=var1, nbins=30, title=f"Distribution of {var1}")
     dist_fig_var2 = px.histogram(df, x=var2, nbins=30, title=f"Distribution of {var2}")
+    
+    # Tính toán các số liệu tổng quan
     summary = get_summary_statistics(var1, var2)
     
     # Tạo bảng summary statistics với đường kẻ và tên biến
